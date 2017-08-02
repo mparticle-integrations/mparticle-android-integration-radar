@@ -25,5 +25,5 @@ android {
 }
 
 dependencies {
-    compile 'com.onradar:sdk:[1.1,1.2)'
+    compile 'com.onradar:sdk:[1.2,1.3)'
 }

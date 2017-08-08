@@ -22,6 +22,14 @@ android {
     defaultConfig {
         minSdkVersion 14
     }
+    testOptions {
+        unitTests {
+            all {
+                // configure the test JVM arguments
+                jvmArgs '-noverify'
+            }
+        }
+    }
 }
 
 dependencies {

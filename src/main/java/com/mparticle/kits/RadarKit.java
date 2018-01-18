@@ -42,6 +42,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.ActivityL
         Radar.initialize(context, publishableKey);
 
         if (mRunAutomatically) {
+            this.tryTrackOnce();
             this.tryStartTracking();
         }
 
@@ -127,6 +128,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.ActivityL
             Radar.setUserId(id);
 
             if (mRunAutomatically) {
+                this.tryTrackOnce();
                 this.tryStartTracking();
             }
         }
@@ -155,6 +157,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.ActivityL
         if (mRunAutomatically) {
             Radar.stopTracking();
         }
+        
         List<ReportingMessage> messageList = new LinkedList<ReportingMessage>();
         messageList.add(new ReportingMessage(this, ReportingMessage.MessageType.OPT_OUT, System.currentTimeMillis(), null));
         return messageList;

@@ -41,7 +41,14 @@ public class RadarKit extends KitIntegration implements KitIntegration.ActivityL
 
         Radar.initialize(context, publishableKey);
 
+        Map<MParticle.IdentityType, String> identities = getUserIdentities();
+        String customerId = identities.get(MParticle.IdentityType.CustomerId);
+        if (customerId != null) {
+            Radar.setUserId(customerId);
+        }
+
         if (mRunAutomatically) {
+            this.tryTrackOnce();
             this.tryStartTracking();
         }
 
@@ -127,6 +134,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.ActivityL
             Radar.setUserId(id);
 
             if (mRunAutomatically) {
+                this.tryTrackOnce();
                 this.tryStartTracking();
             }
         }

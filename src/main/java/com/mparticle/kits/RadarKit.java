@@ -40,8 +40,12 @@ public class RadarKit extends KitIntegration implements KitIntegration.ActivityL
         mRunAutomatically = settings.containsKey(KEY_RUN_AUTOMATICALLY) && Boolean.parseBoolean(settings.get(KEY_RUN_AUTOMATICALLY));
 
         Radar.initialize(context, publishableKey);
-        
-        // TODO proactively get customer ID and call Radar.setUserId(customerId)?
+
+        Map<MParticle.IdentityType, String> identities = getUserIdentities();
+        String customerId = identities.get(MParticle.IdentityType.CustomerId);
+        if (customerId != null) {
+            Radar.setUserId(customerId);
+        }
 
         if (mRunAutomatically) {
             this.tryTrackOnce();
@@ -128,7 +132,12 @@ public class RadarKit extends KitIntegration implements KitIntegration.ActivityL
     public void setUserIdentity(MParticle.IdentityType identityType, String id) {
         if (identityType.equals(MParticle.IdentityType.Alias)) {
             Radar.reidentifyUser(id);
-            // TODO get new customer ID and call Radar.setUserId(customerId)?
+            
+            Map<MParticle.IdentityType, String> identities = getUserIdentities();
+            String customerId = identities.get(MParticle.IdentityType.CustomerId);
+            if (customerId != null) {
+                Radar.setUserId(customerId);
+            }
 
             if (mRunAutomatically) {
                 this.tryTrackOnce();

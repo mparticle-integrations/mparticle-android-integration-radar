@@ -36,7 +36,7 @@ android {
 }
 
 dependencies {
-    compile('com.onradar:sdk:1.3.5') {
+    compile('com.onradar:sdk:1.3.6') {
         exclude module: 'support-v4'
     }
 }

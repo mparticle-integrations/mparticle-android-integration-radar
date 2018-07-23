@@ -1,17 +1,19 @@
 package com.mparticle.kits;
 
-import android.app.Activity;
+import android.Manifest;
 import android.content.Context;
-import android.os.Bundle;
+import android.content.pm.PackageManager;
 
+import android.support.v4.app.ActivityCompat;
 import com.mparticle.MParticle;
-import com.onradar.sdk.Radar;
+import io.radar.sdk.Radar;
 
+import io.radar.sdk.Radar.RadarCallback;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class RadarKit extends KitIntegration implements KitIntegration.ActivityListener, KitIntegration.AttributeListener {
+public class RadarKit extends KitIntegration implements KitIntegration.ApplicationStateListener, KitIntegration.AttributeListener {
 
     private static final String KEY_PUBLISHABLE_KEY = "publishableKey";
     private static final String KEY_RUN_AUTOMATICALLY = "runAutomatically";
@@ -19,7 +21,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.ActivityL
     private boolean mRunAutomatically = true;
 
     private void tryStartTracking() {
-        boolean hasGrantedPermissions = Radar.checkSelfPermissions();
+        boolean hasGrantedPermissions = ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
         if (hasGrantedPermissions) {
             Radar.startTracking();
@@ -27,10 +29,10 @@ public class RadarKit extends KitIntegration implements KitIntegration.ActivityL
     }
 
     private void tryTrackOnce() {
-        boolean hasGrantedPermissions = Radar.checkSelfPermissions();
+      boolean hasGrantedPermissions = ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
         if (hasGrantedPermissions) {
-            Radar.trackOnce(null);
+            Radar.trackOnce((RadarCallback)null);
         }
     }
 
@@ -39,7 +41,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.ActivityL
         String publishableKey = settings.get(KEY_PUBLISHABLE_KEY);
         mRunAutomatically = settings.containsKey(KEY_RUN_AUTOMATICALLY) && Boolean.parseBoolean(settings.get(KEY_RUN_AUTOMATICALLY));
 
-        Radar.initialize(context, publishableKey);
+        Radar.initialize(publishableKey);
 
         Map<MParticle.IdentityType, String> identities = getUserIdentities();
         String customerId = identities.get(MParticle.IdentityType.CustomerId);
@@ -63,44 +65,14 @@ public class RadarKit extends KitIntegration implements KitIntegration.ActivityL
     }
 
     @Override
-    public List<ReportingMessage> onActivityCreated(Activity activity, Bundle bundle) {
-        return null;
-    }
-
-    @Override
-    public List<ReportingMessage> onActivityStarted(Activity activity) {
-        return null;
-    }
-
-    @Override
-    public List<ReportingMessage> onActivityResumed(Activity activity) {
+    public void onApplicationForeground() {
         if (mRunAutomatically) {
             this.tryTrackOnce();
         }
-
-        List<ReportingMessage> messageList = new LinkedList<ReportingMessage>();
-        messageList.add(new ReportingMessage(this, ReportingMessage.MessageType.APP_STATE_TRANSITION, System.currentTimeMillis(), null));
-        return messageList;
     }
 
     @Override
-    public List<ReportingMessage> onActivityPaused(Activity activity) {
-        return null;
-    }
-
-    @Override
-    public List<ReportingMessage> onActivityStopped(Activity activity) {
-        return null;
-    }
-
-    @Override
-    public List<ReportingMessage> onActivitySaveInstanceState(Activity activity, Bundle bundle) {
-        return null;
-    }
-
-    @Override
-    public List<ReportingMessage> onActivityDestroyed(Activity activity) {
-        return null;
+    public void onApplicationBackground() {
     }
 
     @Override

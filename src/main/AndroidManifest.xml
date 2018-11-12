@@ -2,6 +2,6 @@
 <manifest xmlns:tools="http://schemas.android.com/tools"
     package="com.mparticle.kits.radar">
 
-    <uses-sdk tools:overrideLibrary="com.onradar.sdk"/>
+    <uses-sdk tools:overrideLibrary="io.radar.sdk"/>
 
 </manifest>

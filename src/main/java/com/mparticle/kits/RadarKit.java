@@ -7,8 +7,8 @@ import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import com.mparticle.MParticle;
 import io.radar.sdk.Radar;
-
 import io.radar.sdk.Radar.RadarCallback;
+import io.radar.sdk.Radar.RadarPriority;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +24,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
         boolean hasGrantedPermissions = ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
         if (hasGrantedPermissions) {
+            Radar.setTrackingPriority(RadarPriority.EFFICIENCY);
             Radar.startTracking();
         }
     }

@@ -58,6 +58,8 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
         if (mRunAutomatically) {
             this.tryTrackOnce();
             this.tryStartTracking();
+        } else {
+            Radar.stopTracking();
         }
 
         List<ReportingMessage> messageList = new LinkedList<>();
@@ -74,6 +76,8 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
     public void onApplicationForeground() {
         if (mRunAutomatically) {
             this.tryTrackOnce();
+        } else {
+            Radar.stopTracking();
         }
     }
 

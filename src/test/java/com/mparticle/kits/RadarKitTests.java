@@ -3,12 +3,16 @@ package com.mparticle.kits;
 
 import android.content.Context;
 
+import com.mparticle.MParticle;
+import com.mparticle.identity.MParticleUser;
+
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -54,5 +58,20 @@ public class RadarKitTests {
             }
         }
         fail(className + " not found as a known integration.");
+    }
+
+    @Test
+    public void testSetUser() throws Exception {
+        RadarKit kit = new RadarKit();
+        kit.mRunAutomatically = false;
+        assertFalse(kit.setUserAndTrack(null, "foo"));
+        MParticleUser user = Mockito.mock(MParticleUser.class);
+        Map<MParticle.IdentityType, String> identities = new HashMap<>();
+        identities.put(MParticle.IdentityType.CustomerId, "foo");
+        Mockito.when(user.getUserIdentities()).thenReturn(identities);
+        assertTrue(kit.setUserAndTrack(user, "bar"));
+        assertTrue(kit.setUserAndTrack(user, null));
+        identities.clear();
+        assertTrue(kit.setUserAndTrack(user, "foo"));
     }
 }

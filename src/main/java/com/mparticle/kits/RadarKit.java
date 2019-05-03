@@ -4,23 +4,25 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
+
 import com.mparticle.MParticle;
-import com.mparticle.MParticle.IdentityType;
 import com.mparticle.identity.MParticleUser;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import io.radar.sdk.Radar;
 import io.radar.sdk.Radar.RadarCallback;
 import io.radar.sdk.Radar.RadarTrackingPriority;
 import io.radar.sdk.RadarTrackingOptions;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 public class RadarKit extends KitIntegration implements KitIntegration.ApplicationStateListener, KitIntegration.IdentityListener {
 
     private static final String KEY_PUBLISHABLE_KEY = "publishableKey";
     private static final String KEY_RUN_AUTOMATICALLY = "runAutomatically";
 
-    private boolean mRunAutomatically = true;
+    boolean mRunAutomatically = true;
 
     private void tryStartTracking() {
         boolean hasGrantedPermissions = ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
@@ -48,13 +50,12 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
         mRunAutomatically = settings.containsKey(KEY_RUN_AUTOMATICALLY) && Boolean.parseBoolean(settings.get(KEY_RUN_AUTOMATICALLY));
 
         Radar.initialize(publishableKey);
-
-        Map<MParticle.IdentityType, String> identities = getCurrentUser().getUserIdentities();
-        String customerId = identities.get(MParticle.IdentityType.CustomerId);
-        if (customerId != null) {
+        MParticleUser user = getCurrentUser();
+        if (user != null) {
+            Map<MParticle.IdentityType, String> identities = user.getUserIdentities();
+            String customerId = identities.get(MParticle.IdentityType.CustomerId);
             Radar.setUserId(customerId);
         }
-
         if (mRunAutomatically) {
             this.tryTrackOnce();
             this.tryStartTracking();
@@ -85,43 +86,44 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
     public void onApplicationBackground() {
     }
 
-    @Override
-    public void onIdentifyCompleted(MParticleUser mParticleUser,
-        FilteredIdentityApiRequest filteredIdentityApiRequest) {
-        String customerId = filteredIdentityApiRequest.getNewIdentities().get(IdentityType.CustomerId);
-        if (customerId != null) {
-            Radar.setUserId(customerId);
-
+    boolean setUserAndTrack(MParticleUser user, String currentRadarId) {
+        if (user == null) {
+            return false;
+        }
+        String newId = user.getUserIdentities().get(MParticle.IdentityType.CustomerId);
+        boolean updatedId = newId == null ? currentRadarId != null : !newId.equals(currentRadarId);
+        if (updatedId) {
+            Radar.setUserId(newId);
             if (mRunAutomatically) {
                 tryTrackOnce();
                 tryStartTracking();
             }
         }
+        return updatedId;
+    }
+
+    @Override
+    public void onIdentifyCompleted(MParticleUser mParticleUser,
+        FilteredIdentityApiRequest filteredIdentityApiRequest) {
+        setUserAndTrack(mParticleUser, Radar.getUserId());
     }
 
     @Override
     public void onLoginCompleted(MParticleUser mParticleUser,
         FilteredIdentityApiRequest filteredIdentityApiRequest) {
+        setUserAndTrack(mParticleUser, Radar.getUserId());
     }
 
     @Override
     public void onLogoutCompleted(MParticleUser mParticleUser,
         FilteredIdentityApiRequest filteredIdentityApiRequest) {
-        if (mRunAutomatically) {
-            Radar.setUserId(null);
-            Radar.stopTracking();
-        }
+        setUserAndTrack(mParticleUser, Radar.getUserId());
     }
 
     @Override
     public void onModifyCompleted(MParticleUser mParticleUser,
         FilteredIdentityApiRequest filteredIdentityApiRequest) {
-        boolean oldHasId = filteredIdentityApiRequest.getOldIdentities().containsKey(IdentityType.CustomerId);
-        boolean newHasId = filteredIdentityApiRequest.getNewIdentities().containsKey(IdentityType.CustomerId);
-        if (oldHasId && !newHasId && mRunAutomatically) {
-            Radar.setUserId(null);
-            Radar.stopTracking();
-        }
+        setUserAndTrack(mParticleUser, Radar.getUserId());
     }
 
     @Override

@@ -3,34 +3,41 @@ package com.mparticle.kits;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-
 import android.support.v4.app.ActivityCompat;
+
 import com.mparticle.MParticle;
-import io.radar.sdk.Radar;
-import io.radar.sdk.Radar.RadarCallback;
-import io.radar.sdk.Radar.RadarPriority;
+import com.mparticle.identity.MParticleUser;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class RadarKit extends KitIntegration implements KitIntegration.ApplicationStateListener, KitIntegration.AttributeListener {
+import io.radar.sdk.Radar;
+import io.radar.sdk.Radar.RadarCallback;
+import io.radar.sdk.Radar.RadarTrackingPriority;
+import io.radar.sdk.RadarTrackingOptions;
+
+public class RadarKit extends KitIntegration implements KitIntegration.ApplicationStateListener, KitIntegration.IdentityListener {
 
     private static final String KEY_PUBLISHABLE_KEY = "publishableKey";
     private static final String KEY_RUN_AUTOMATICALLY = "runAutomatically";
 
-    private boolean mRunAutomatically = true;
+    boolean mRunAutomatically = true;
 
     private void tryStartTracking() {
         boolean hasGrantedPermissions = ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
         if (hasGrantedPermissions) {
-            Radar.setTrackingPriority(RadarPriority.EFFICIENCY);
-            Radar.startTracking();
+            Radar.startTracking(
+                new RadarTrackingOptions.Builder()
+                    .priority(RadarTrackingPriority.EFFICIENCY)
+                    .build()
+            );
         }
     }
 
     private void tryTrackOnce() {
-      boolean hasGrantedPermissions = ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        boolean hasGrantedPermissions = ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
         if (hasGrantedPermissions) {
             Radar.trackOnce((RadarCallback)null);
@@ -43,19 +50,20 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
         mRunAutomatically = settings.containsKey(KEY_RUN_AUTOMATICALLY) && Boolean.parseBoolean(settings.get(KEY_RUN_AUTOMATICALLY));
 
         Radar.initialize(publishableKey);
-
-        Map<MParticle.IdentityType, String> identities = getUserIdentities();
-        String customerId = identities.get(MParticle.IdentityType.CustomerId);
-        if (customerId != null) {
+        MParticleUser user = getCurrentUser();
+        if (user != null) {
+            Map<MParticle.IdentityType, String> identities = user.getUserIdentities();
+            String customerId = identities.get(MParticle.IdentityType.CustomerId);
             Radar.setUserId(customerId);
         }
-
         if (mRunAutomatically) {
             this.tryTrackOnce();
             this.tryStartTracking();
+        } else {
+            Radar.stopTracking();
         }
 
-        List<ReportingMessage> messageList = new LinkedList<ReportingMessage>();
+        List<ReportingMessage> messageList = new LinkedList<>();
         messageList.add(new ReportingMessage(this, ReportingMessage.MessageType.APP_STATE_TRANSITION, System.currentTimeMillis(), null));
         return messageList;
     }
@@ -69,6 +77,8 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
     public void onApplicationForeground() {
         if (mRunAutomatically) {
             this.tryTrackOnce();
+        } else {
+            Radar.stopTracking();
         }
     }
 
@@ -76,69 +86,58 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
     public void onApplicationBackground() {
     }
 
-    @Override
-    public void setUserAttribute(String s, String s1) {
-
-    }
-
-    @Override
-    public void setUserAttributeList(String s, List<String> list) {
-
-    }
-
-    @Override
-    public boolean supportsAttributeLists() {
-        return false;
-    }
-
-    @Override
-    public void setAllUserAttributes(Map<String, String> map, Map<String, List<String>> map1) {
-
-    }
-
-    @Override
-    public void removeUserAttribute(String s) {
-
-    }
-
-    @Override
-    public void setUserIdentity(MParticle.IdentityType identityType, String id) {
-        if (identityType.equals(MParticle.IdentityType.CustomerId)) {
-            Radar.setUserId(id);
-
+    boolean setUserAndTrack(MParticleUser user, String currentRadarId) {
+        if (user == null) {
+            return false;
+        }
+        String newId = user.getUserIdentities().get(MParticle.IdentityType.CustomerId);
+        boolean updatedId = newId == null ? currentRadarId != null : !newId.equals(currentRadarId);
+        if (updatedId) {
+            Radar.setUserId(newId);
             if (mRunAutomatically) {
-                this.tryTrackOnce();
-                this.tryStartTracking();
+                tryTrackOnce();
+                tryStartTracking();
             }
         }
+        return updatedId;
     }
 
     @Override
-    public void removeUserIdentity(MParticle.IdentityType identityType) {
-        if (identityType.equals(MParticle.IdentityType.CustomerId) && mRunAutomatically) {
-            Radar.stopTracking();
-        }
+    public void onIdentifyCompleted(MParticleUser mParticleUser,
+        FilteredIdentityApiRequest filteredIdentityApiRequest) {
+        setUserAndTrack(mParticleUser, Radar.getUserId());
     }
 
     @Override
-    public List<ReportingMessage> logout() {
-        if (mRunAutomatically) {
-            Radar.stopTracking();
-        }
-
-        List<ReportingMessage> messageList = new LinkedList<ReportingMessage>();
-        messageList.add(ReportingMessage.logoutMessage(this));
-        return messageList;
+    public void onLoginCompleted(MParticleUser mParticleUser,
+        FilteredIdentityApiRequest filteredIdentityApiRequest) {
+        setUserAndTrack(mParticleUser, Radar.getUserId());
     }
+
+    @Override
+    public void onLogoutCompleted(MParticleUser mParticleUser,
+        FilteredIdentityApiRequest filteredIdentityApiRequest) {
+        setUserAndTrack(mParticleUser, Radar.getUserId());
+    }
+
+    @Override
+    public void onModifyCompleted(MParticleUser mParticleUser,
+        FilteredIdentityApiRequest filteredIdentityApiRequest) {
+        setUserAndTrack(mParticleUser, Radar.getUserId());
+    }
+
+    @Override
+    public void onUserIdentified(MParticleUser mParticleUser) {
+    }
+
 
     @Override
     public List<ReportingMessage> setOptOut(boolean optedOut) {
         if (mRunAutomatically) {
             Radar.stopTracking();
         }
-        List<ReportingMessage> messageList = new LinkedList<ReportingMessage>();
+        List<ReportingMessage> messageList = new LinkedList<>();
         messageList.add(new ReportingMessage(this, ReportingMessage.MessageType.OPT_OUT, System.currentTimeMillis(), null));
         return messageList;
     }
-
 }

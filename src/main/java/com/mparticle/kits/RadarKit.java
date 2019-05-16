@@ -57,8 +57,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
             Radar.setUserId(customerId);
         }
         if (mRunAutomatically) {
-            this.tryTrackOnce();
-            this.tryStartTracking();
+            tryStartTracking();
         } else {
             Radar.stopTracking();
         }

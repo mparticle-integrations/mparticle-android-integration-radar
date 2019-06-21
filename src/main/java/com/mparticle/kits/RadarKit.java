@@ -3,7 +3,7 @@ package com.mparticle.kits;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
+import androidx.core.app.ActivityCompat;
 
 import com.mparticle.MParticle;
 import com.mparticle.identity.MParticleUser;

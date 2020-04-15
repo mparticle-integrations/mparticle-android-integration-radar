@@ -3,7 +3,7 @@ package com.mparticle.kits;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
+import androidx.core.app.ActivityCompat;
 
 import com.mparticle.MParticle;
 import com.mparticle.identity.MParticleUser;
@@ -13,8 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.radar.sdk.Radar;
-import io.radar.sdk.Radar.RadarCallback;
-import io.radar.sdk.Radar.RadarTrackingPriority;
+import io.radar.sdk.Radar.RadarTrackCallback;
 import io.radar.sdk.RadarTrackingOptions;
 
 public class RadarKit extends KitIntegration implements KitIntegration.ApplicationStateListener, KitIntegration.IdentityListener {
@@ -28,11 +27,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
         boolean hasGrantedPermissions = ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
         if (hasGrantedPermissions) {
-            Radar.startTracking(
-                new RadarTrackingOptions.Builder()
-                    .priority(RadarTrackingPriority.EFFICIENCY)
-                    .build()
-            );
+            Radar.startTracking(RadarTrackingOptions.EFFICIENT);
         }
     }
 
@@ -40,7 +35,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
         boolean hasGrantedPermissions = ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
 
         if (hasGrantedPermissions) {
-            Radar.trackOnce((RadarCallback)null);
+            Radar.trackOnce((RadarTrackCallback)null);
         }
     }
 
@@ -49,12 +44,15 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
         String publishableKey = settings.get(KEY_PUBLISHABLE_KEY);
         mRunAutomatically = settings.containsKey(KEY_RUN_AUTOMATICALLY) && Boolean.parseBoolean(settings.get(KEY_RUN_AUTOMATICALLY));
 
-        Radar.initialize(publishableKey);
+        Radar.initialize(context, publishableKey);
+        Radar.setAdIdEnabled(true);
         MParticleUser user = getCurrentUser();
         if (user != null) {
             Map<MParticle.IdentityType, String> identities = user.getUserIdentities();
             String customerId = identities.get(MParticle.IdentityType.CustomerId);
-            Radar.setUserId(customerId);
+            if (customerId != null) {
+                Radar.setUserId(customerId);
+            }
         }
         if (mRunAutomatically) {
             tryStartTracking();

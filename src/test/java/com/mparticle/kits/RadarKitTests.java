@@ -69,9 +69,10 @@ public class RadarKitTests {
         Map<MParticle.IdentityType, String> identities = new HashMap<>();
         identities.put(MParticle.IdentityType.CustomerId, "foo");
         Mockito.when(user.getUserIdentities()).thenReturn(identities);
-        assertTrue(kit.setUserAndTrack(user, "bar"));
-        assertTrue(kit.setUserAndTrack(user, null));
+        assertFalse(kit.setUserAndTrack(user, "foo", true));
+        assertTrue(kit.setUserAndTrack(user, "bar", true));
+        assertTrue(kit.setUserAndTrack(user, null, true));
         identities.clear();
-        assertTrue(kit.setUserAndTrack(user, "foo"));
+        assertTrue(kit.setUserAndTrack(user, "foo", true));
     }
 }

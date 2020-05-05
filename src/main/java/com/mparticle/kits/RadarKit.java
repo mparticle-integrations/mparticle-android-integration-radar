@@ -84,12 +84,16 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
     }
 
     boolean setUserAndTrack(MParticleUser user, String currentRadarId) {
+        return setUserAndTrack(user, currentRadarId, false);
+    }
+
+    boolean setUserAndTrack(MParticleUser user, String currentRadarId, boolean unitTesting) {
         if (user == null) {
             return false;
         }
         String newId = user.getUserIdentities().get(MParticle.IdentityType.CustomerId);
         boolean updatedId = newId == null ? currentRadarId != null : !newId.equals(currentRadarId);
-        if (updatedId) {
+        if (updatedId && !unitTesting) {
             Radar.setUserId(newId);
             if (mRunAutomatically) {
                 tryTrackOnce();

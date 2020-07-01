@@ -67,7 +67,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
 
     @Override
     public String getName() {
-        return "Radar";
+        return "RadarKit";
     }
 
     @Override

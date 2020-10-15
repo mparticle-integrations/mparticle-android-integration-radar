@@ -64,15 +64,23 @@ public class RadarKitTests {
     public void testSetUser() throws Exception {
         RadarKit kit = new RadarKit();
         kit.mRunAutomatically = false;
-        assertFalse(kit.setUserAndTrack(null, "foo"));
+        JSONObject o = new JSONObject()
+        assertFalse(kit.setUserAndTrack(null, "foo", o));
         MParticleUser user = Mockito.mock(MParticleUser.class);
         Map<MParticle.IdentityType, String> identities = new HashMap<>();
         identities.put(MParticle.IdentityType.CustomerId, "foo");
+        JSONObject radarMetadata = new JSONObject();
+        try {
+            radarMetadata.put("mParticleId",
+                    Long.toString(user.getId()));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         Mockito.when(user.getUserIdentities()).thenReturn(identities);
-        assertFalse(kit.setUserAndTrack(user, "foo", true));
-        assertTrue(kit.setUserAndTrack(user, "bar", true));
-        assertTrue(kit.setUserAndTrack(user, null, true));
+        assertFalse(kit.setUserAndTrack(user, "foo", o, true));
+        assertTrue(kit.setUserAndTrack(user, "bar", radarMetadata, true));
+        assertTrue(kit.setUserAndTrack(user, null, o, true));
         identities.clear();
-        assertTrue(kit.setUserAndTrack(user, "foo", true));
+        assertTrue(kit.setUserAndTrack(user, "foo", radarMetadata, true));
     }
 }

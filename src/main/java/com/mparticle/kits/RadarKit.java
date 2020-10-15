@@ -16,6 +16,9 @@ import io.radar.sdk.Radar;
 import io.radar.sdk.Radar.RadarTrackCallback;
 import io.radar.sdk.RadarTrackingOptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class RadarKit extends KitIntegration implements KitIntegration.ApplicationStateListener, KitIntegration.IdentityListener {
 
     private static final String KEY_PUBLISHABLE_KEY = "publishableKey";
@@ -53,6 +56,13 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
             if (customerId != null) {
                 Radar.setUserId(customerId);
             }
+            JSONObject radarMetadata = new JSONObject();
+            try {
+                radarMetadata.put("mParticleId", user.getId());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            Radar.setMetadata(radarMetadata);
         }
         if (mRunAutomatically) {
             tryStartTracking();
@@ -83,48 +93,66 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
     public void onApplicationBackground() {
     }
 
-    boolean setUserAndTrack(MParticleUser user, String currentRadarId) {
-        return setUserAndTrack(user, currentRadarId, false);
+    boolean setUserAndTrack(MParticleUser user, String currentRadarId, JSONObject currentMetadata) {
+        return setUserAndTrack(user, currentRadarId, currentMetadata, false);
     }
 
-    boolean setUserAndTrack(MParticleUser user, String currentRadarId, boolean unitTesting) {
+    boolean setUserAndTrack(MParticleUser user, String currentRadarId, JSONObject currentMetadata, boolean unitTesting) {
         if (user == null) {
             return false;
         }
-        String newId = user.getUserIdentities().get(MParticle.IdentityType.CustomerId);
-        boolean updatedId = newId == null ? currentRadarId != null : !newId.equals(currentRadarId);
-        if (updatedId && !unitTesting) {
-            Radar.setUserId(newId);
+        String newCustomerId = user.getUserIdentities().get(MParticle.IdentityType.CustomerId);
+        long newMpId = user.getId();
+        long currentMpId = 0;
+        try {
+            currentMpId = currentMetadata.getLong("mParticleId");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        boolean updatedCustomerId = newCustomerId == null ? currentRadarId != null : !newCustomerId.equals(currentRadarId);
+        boolean updatedMpId = newMpId == currentMpId;
+        if ((updatedCustomerId) && !unitTesting) {
+            Radar.setUserId(newCustomerId);
+        }
+        if ((updatedMpId) && !unitTesting) {
+            try {
+                currentMetadata.put("mParticleId", newMpId);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            Radar.setMetadata(currentMetadata);
+        }
+        if ((updatedCustomerId || updatedMpId) && !unitTesting) {
             if (mRunAutomatically) {
                 tryTrackOnce();
                 tryStartTracking();
             }
         }
-        return updatedId;
+        return updatedCustomerId || updatedMpId;
     }
 
     @Override
     public void onIdentifyCompleted(MParticleUser mParticleUser,
         FilteredIdentityApiRequest filteredIdentityApiRequest) {
-        setUserAndTrack(mParticleUser, Radar.getUserId());
+        setUserAndTrack(mParticleUser, Radar.getUserId(), Radar.getMetadata());
     }
 
     @Override
     public void onLoginCompleted(MParticleUser mParticleUser,
         FilteredIdentityApiRequest filteredIdentityApiRequest) {
-        setUserAndTrack(mParticleUser, Radar.getUserId());
+        setUserAndTrack(mParticleUser, Radar.getUserId(), Radar.getMetadata());
     }
 
     @Override
     public void onLogoutCompleted(MParticleUser mParticleUser,
         FilteredIdentityApiRequest filteredIdentityApiRequest) {
-        setUserAndTrack(mParticleUser, Radar.getUserId());
+        setUserAndTrack(mParticleUser, Radar.getUserId(), Radar.getMetadata());
     }
 
     @Override
     public void onModifyCompleted(MParticleUser mParticleUser,
         FilteredIdentityApiRequest filteredIdentityApiRequest) {
-        setUserAndTrack(mParticleUser, Radar.getUserId());
+        setUserAndTrack(mParticleUser, Radar.getUserId(), Radar.getMetadata());
     }
 
     @Override

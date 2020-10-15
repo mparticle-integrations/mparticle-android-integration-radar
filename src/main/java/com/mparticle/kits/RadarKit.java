@@ -3,6 +3,8 @@ package com.mparticle.kits;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.util.Log;
+
 import androidx.core.app.ActivityCompat;
 
 import com.mparticle.MParticle;
@@ -44,9 +46,9 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
 
     @Override
     protected List<ReportingMessage> onKitCreate(Map<String, String> settings, Context context) {
+        Log.d("TEST","on kit create");
         String publishableKey = settings.get(KEY_PUBLISHABLE_KEY);
         mRunAutomatically = settings.containsKey(KEY_RUN_AUTOMATICALLY) && Boolean.parseBoolean(settings.get(KEY_RUN_AUTOMATICALLY));
-
         Radar.initialize(context, publishableKey);
         Radar.setAdIdEnabled(true);
         MParticleUser user = getCurrentUser();
@@ -58,7 +60,8 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
             }
             JSONObject radarMetadata = new JSONObject();
             try {
-                radarMetadata.put("mParticleId", user.getId());
+                radarMetadata.put("mParticleId",
+                        Long.toString(user.getId()));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -102,15 +105,15 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
             return false;
         }
         String newCustomerId = user.getUserIdentities().get(MParticle.IdentityType.CustomerId);
-        long newMpId = user.getId();
-        long currentMpId = 0;
+        String newMpId = Long.toString(user.getId());
+        String currentMpId = null;
         try {
-            currentMpId = currentMetadata.getLong("mParticleId");
+            currentMpId = currentMetadata.getString("mParticleId");
         } catch (JSONException e) {
             e.printStackTrace();
         }
         boolean updatedCustomerId = newCustomerId == null ? currentRadarId != null : !newCustomerId.equals(currentRadarId);
-        boolean updatedMpId = newMpId == currentMpId;
+        boolean updatedMpId = newMpId == null ? currentMpId != null : !newMpId.equals(currentMpId);
         if ((updatedCustomerId) && !unitTesting) {
             Radar.setUserId(newCustomerId);
         }

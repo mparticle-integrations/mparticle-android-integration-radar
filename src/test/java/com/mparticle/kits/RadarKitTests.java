@@ -17,6 +17,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class RadarKitTests {
 
     private KitIntegration getKit() {

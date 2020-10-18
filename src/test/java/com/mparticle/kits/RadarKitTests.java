@@ -64,7 +64,7 @@ public class RadarKitTests {
     public void testSetUser() throws Exception {
         RadarKit kit = new RadarKit();
         kit.mRunAutomatically = false;
-        JSONObject o = new JSONObject()
+        JSONObject o = new JSONObject();
         assertFalse(kit.setUserAndTrack(null, "foo", o));
         MParticleUser user = Mockito.mock(MParticleUser.class);
         Map<MParticle.IdentityType, String> identities = new HashMap<>();

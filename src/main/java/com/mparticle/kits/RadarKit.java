@@ -104,7 +104,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
         }
         String newCustomerId = user.getUserIdentities().get(MParticle.IdentityType.CustomerId);
         String newMpId = null;
-        if (Long.toString(user.getId()) != null) {
+        if (Long.toString(user.getId()) != null && Long.valueOf(user.getId()).intValue() != 0) {
             newMpId = Long.toString(user.getId());
         }
         String currentMpId = null;

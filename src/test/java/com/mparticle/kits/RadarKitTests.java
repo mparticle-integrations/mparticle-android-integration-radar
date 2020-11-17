@@ -17,6 +17,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class RadarKitTests {
 
     private KitIntegration getKit() {
@@ -64,15 +67,18 @@ public class RadarKitTests {
     public void testSetUser() throws Exception {
         RadarKit kit = new RadarKit();
         kit.mRunAutomatically = false;
-        assertFalse(kit.setUserAndTrack(null, "foo"));
+        JSONObject o = new JSONObject();
+        o.put("mParticleId","5");
+        assertFalse(kit.setUserAndTrack(null, "foo", o));
         MParticleUser user = Mockito.mock(MParticleUser.class);
         Map<MParticle.IdentityType, String> identities = new HashMap<>();
         identities.put(MParticle.IdentityType.CustomerId, "foo");
         Mockito.when(user.getUserIdentities()).thenReturn(identities);
-        assertFalse(kit.setUserAndTrack(user, "foo", true));
-        assertTrue(kit.setUserAndTrack(user, "bar", true));
-        assertTrue(kit.setUserAndTrack(user, null, true));
+        Mockito.when(user.getId()).thenReturn(5L);
+        assertFalse(kit.setUserAndTrack(user, "foo", o, true));
+        assertTrue(kit.setUserAndTrack(user, "bar", o, true));
+        assertTrue(kit.setUserAndTrack(user, null, o, true));
         identities.clear();
-        assertTrue(kit.setUserAndTrack(user, "foo", true));
+        assertTrue(kit.setUserAndTrack(user, "foo", o, true));
     }
 }

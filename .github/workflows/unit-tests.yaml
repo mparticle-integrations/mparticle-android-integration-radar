@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/github-script@v4
         with:
-          github-token: ${{ secrets.PERSONAL_TOKEN }}
+          github-token: "some key"
           script: |
             github.pulls.merge({
                 owner: context.repo.owner,

@@ -47,7 +47,7 @@ public class RadarKit extends KitIntegration implements KitIntegration.Applicati
         String publishableKey = settings.get(KEY_PUBLISHABLE_KEY);
         mRunAutomatically = settings.containsKey(KEY_RUN_AUTOMATICALLY) && Boolean.parseBoolean(settings.get(KEY_RUN_AUTOMATICALLY));
 
-        Radar.initialize(context, publishableKey);
+        Radar.initialize(context, publishableKey, null);
         Radar.setAdIdEnabled(true);
         MParticleUser user = getCurrentUser();
         if (user != null) {

@@ -6,9 +6,10 @@ buildscript {
     repositories {
         google()
         mavenLocal()
-        jcenter()
+        mavenCentral()
     }
     dependencies {
+        classpath 'com.android.tools.build:gradle:7.0.3'
         classpath 'com.mparticle:android-kit-plugin:' + project.version
     }
 }
@@ -18,7 +19,7 @@ apply plugin: 'com.mparticle.kit'
 allprojects {
     repositories {
         mavenLocal()
-        jcenter()
+        mavenCentral()
         maven {
             url "https://maven.google.com"
         }

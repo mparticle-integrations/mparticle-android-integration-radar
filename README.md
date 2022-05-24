@@ -16,7 +16,7 @@ This repository contains the [Radar](https://www.onradar.com/) integration for t
 
 ### Documentation
 
-[Example integration](http://docs.mparticle.com/?java#radar)
+[Radar integration](https://docs.mparticle.com/integrations/radar/event/)
 
 ### License
 

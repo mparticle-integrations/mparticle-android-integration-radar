@@ -16,6 +16,3 @@ local.properties
 *.iws
 build
 .gradle
-gradle/
-gradlew
-gradlew.bat

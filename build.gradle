@@ -45,7 +45,7 @@ android {
 }
 
 dependencies {
-    api 'io.radar:sdk:3.5.7'
+    api 'io.radar:sdk:3.5.8'
     testImplementation 'org.json:json:20220924'
 }
 

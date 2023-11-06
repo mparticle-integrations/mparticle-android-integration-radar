@@ -12,7 +12,6 @@ import io.radar.sdk.Radar
 import io.radar.sdk.Radar.getMetadata
 import io.radar.sdk.Radar.getUserId
 import io.radar.sdk.Radar.initialize
-import io.radar.sdk.Radar.setAdIdEnabled
 import io.radar.sdk.Radar.setMetadata
 import io.radar.sdk.Radar.setUserId
 import io.radar.sdk.Radar.startTracking
@@ -54,7 +53,6 @@ class RadarKit : KitIntegration(), ApplicationStateListener, IdentityListener {
         mRunAutomatically =
             settings.containsKey(KEY_RUN_AUTOMATICALLY) && settings[KEY_RUN_AUTOMATICALLY].toBoolean()
         initialize(context, publishableKey, null)
-        setAdIdEnabled(true)
         val user = currentUser
         if (user != null) {
             val identities = user.userIdentities

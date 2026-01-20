@@ -47,6 +47,9 @@ allprojects {
 
 android {
     namespace 'com.mparticle.kits.radar'
+    buildFeatures {
+        buildConfig = true
+    }
     defaultConfig {
         minSdkVersion 16
     }

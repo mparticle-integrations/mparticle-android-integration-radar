@@ -4,10 +4,13 @@ import android.content.Context
 import com.mparticle.MParticle.IdentityType
 import com.mparticle.MParticleOptions
 import com.mparticle.identity.MParticleUser
+import com.mparticle.kits.KitIntegration
+import com.mparticle.kits.KitIntegrationFactory
 import org.json.JSONObject
 import org.junit.Assert
 import org.junit.Test
 import org.mockito.Mockito
+import java.util.HashMap
 
 class RadarKitTests {
     private val kit: KitIntegration

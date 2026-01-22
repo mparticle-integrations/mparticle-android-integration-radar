@@ -21,26 +21,32 @@ import io.radar.sdk.Radar.trackOnce
 import io.radar.sdk.RadarTrackingOptions
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.*
+import java.util.LinkedList
 
-class RadarKit : KitIntegration(), ApplicationStateListener, IdentityListener {
+class RadarKit :
+    KitIntegration(),
+    ApplicationStateListener,
+    IdentityListener {
     @JvmField
     var mRunAutomatically = true
+
     private fun tryStartTracking() {
-        val hasGrantedPermissions = ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
+        val hasGrantedPermissions =
+            ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED
         if (hasGrantedPermissions) {
             startTracking(RadarTrackingOptions.EFFICIENT)
         }
     }
 
     private fun tryTrackOnce() {
-        val hasGrantedPermissions = ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
+        val hasGrantedPermissions =
+            ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED
         if (hasGrantedPermissions) {
             trackOnce(null as Radar.RadarTrackCallback?)
         }
@@ -48,11 +54,12 @@ class RadarKit : KitIntegration(), ApplicationStateListener, IdentityListener {
 
     override fun onKitCreate(
         settings: Map<String, String>,
-        context: Context
+        context: Context,
     ): List<ReportingMessage> {
         val publishableKey = settings[KEY_PUBLISHABLE_KEY]
         mRunAutomatically =
-            settings.containsKey(KEY_RUN_AUTOMATICALLY) && settings[KEY_RUN_AUTOMATICALLY].toBoolean()
+            settings.containsKey(KEY_RUN_AUTOMATICALLY) &&
+            settings[KEY_RUN_AUTOMATICALLY].toBoolean()
         initialize(context, publishableKey, null)
         setAdIdEnabled(true)
         val user = currentUser
@@ -64,7 +71,7 @@ class RadarKit : KitIntegration(), ApplicationStateListener, IdentityListener {
             try {
                 radarMetadata.put(
                     "mParticleId",
-                    user.id.toString()
+                    user.id.toString(),
                 )
             } catch (e: JSONException) {
                 e.printStackTrace()
@@ -82,8 +89,8 @@ class RadarKit : KitIntegration(), ApplicationStateListener, IdentityListener {
                 this,
                 ReportingMessage.MessageType.APP_STATE_TRANSITION,
                 System.currentTimeMillis(),
-                null
-            )
+                null,
+            ),
         )
         return messageList
     }
@@ -99,19 +106,18 @@ class RadarKit : KitIntegration(), ApplicationStateListener, IdentityListener {
     }
 
     override fun onApplicationBackground() {}
-    fun setUserAndTrack(
-        user: MParticleUser?,
-        currentRadarId: String?,
-        currentMetadata: JSONObject?
-    ): Boolean {
-        return setUserAndTrack(user, currentRadarId, currentMetadata, false)
-    }
 
     fun setUserAndTrack(
         user: MParticleUser?,
         currentRadarId: String?,
         currentMetadata: JSONObject?,
-        unitTesting: Boolean
+    ): Boolean = setUserAndTrack(user, currentRadarId, currentMetadata, false)
+
+    fun setUserAndTrack(
+        user: MParticleUser?,
+        currentRadarId: String?,
+        currentMetadata: JSONObject?,
+        unitTesting: Boolean,
     ): Boolean {
         if (user == null) {
             return false
@@ -156,33 +162,34 @@ class RadarKit : KitIntegration(), ApplicationStateListener, IdentityListener {
 
     override fun onIdentifyCompleted(
         mParticleUser: MParticleUser,
-        filteredIdentityApiRequest: FilteredIdentityApiRequest
+        filteredIdentityApiRequest: FilteredIdentityApiRequest,
     ) {
         setUserAndTrack(mParticleUser, getUserId(), getMetadata())
     }
 
     override fun onLoginCompleted(
         mParticleUser: MParticleUser,
-        filteredIdentityApiRequest: FilteredIdentityApiRequest
+        filteredIdentityApiRequest: FilteredIdentityApiRequest,
     ) {
         setUserAndTrack(mParticleUser, getUserId(), getMetadata())
     }
 
     override fun onLogoutCompleted(
         mParticleUser: MParticleUser,
-        filteredIdentityApiRequest: FilteredIdentityApiRequest
+        filteredIdentityApiRequest: FilteredIdentityApiRequest,
     ) {
         setUserAndTrack(mParticleUser, getUserId(), getMetadata())
     }
 
     override fun onModifyCompleted(
         mParticleUser: MParticleUser,
-        filteredIdentityApiRequest: FilteredIdentityApiRequest
+        filteredIdentityApiRequest: FilteredIdentityApiRequest,
     ) {
         setUserAndTrack(mParticleUser, getUserId(), getMetadata())
     }
 
     override fun onUserIdentified(mParticleUser: MParticleUser) {}
+
     override fun setOptOut(optedOut: Boolean): List<ReportingMessage> {
         if (mRunAutomatically) {
             stopTracking()
@@ -193,8 +200,8 @@ class RadarKit : KitIntegration(), ApplicationStateListener, IdentityListener {
                 this,
                 ReportingMessage.MessageType.OPT_OUT,
                 System.currentTimeMillis(),
-                null
-            )
+                null,
+            ),
         )
         return messageList
     }
@@ -204,6 +211,5 @@ class RadarKit : KitIntegration(), ApplicationStateListener, IdentityListener {
         private const val KEY_RUN_AUTOMATICALLY = "runAutomatically"
         private const val M_PARTICLE_ID = "mParticleId"
         const val KIT_NAME = "RadarKit"
-
     }
 }
